@@ -12,10 +12,10 @@ class FCM
   INSTANCE_ID_API = "https://iid.googleapis.com"
   TOPIC_REGEX = /[a-zA-Z0-9\-_.~%]+/
 
-  def initialize(api_key, json_key_path = "", project_name = "", client_options = {})
+  def initialize(api_key, json_key = "", project_name = "", client_options = {})
     @api_key = api_key
     @client_options = client_options
-    @json_key_path = json_key_path
+    @json_key = StringIO.new(json_key)
     @project_name = project_name
   end
 
@@ -319,18 +319,10 @@ class FCM
   def jwt_token
     scope = "https://www.googleapis.com/auth/firebase.messaging"
     @authorizer ||= Google::Auth::ServiceAccountCredentials.make_creds(
-      json_key_io: json_key,
+      json_key_io: @json_key,
       scope: scope,
     )
     token = @authorizer.fetch_access_token!
     token["access_token"]
-  end
-
-  def json_key
-    @json_key ||= if @json_key_path.respond_to?(:read)
-                    @json_key_path
-                  else
-                    File.open(@json_key_path)
-                  end
   end
 end
